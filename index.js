@@ -5,6 +5,7 @@ const program = require("commander");
 const gitignore = require("ignored");
 const babel = require("@babel/core");
 const ignore = require("ignore");
+const chalk = require("chalk");
 const find = require("find");
 const path = require("path");
 const fs = require("fs");
@@ -17,36 +18,69 @@ program.version("1.0.0").parse(process.argv);
 // -p for file pattern or something (default to *.js)
 // see: https://www.npmjs.com/package/commander
 
-const patterns = gitignore(); // without a param, uses current directory
-const ig = ignore().add(patterns);
-
-const options = babel.loadOptions({
+const dir = path.join(__dirname, "node_modules");
+const opts = babel.loadPartialConfig({
   plugins: [
-    "@babel/plugin-proposal-class-properties",
-    "@babel/plugin-syntax-jsx",
-    "@babel/plugin-transform-react-jsx",
-    "@babel/plugin-transform-react-display-name"
+    babel.createConfigItem("@babel/plugin-proposal-class-properties", {
+      dirname: dir,
+      type: "plugin"
+    }),
+    babel.createConfigItem("@babel/plugin-syntax-jsx", {
+      dirname: dir,
+      type: "plugin"
+    }),
+    babel.createConfigItem("@babel/plugin-transform-react-jsx", {
+      dirname: dir,
+      type: "plugin"
+    }),
+    babel.createConfigItem("@babel/plugin-transform-react-display-name", {
+      dirname: dir,
+      type: "plugin"
+    })
   ]
 });
 
+const patterns = gitignore(); // without a param, uses current directory
+const ig = ignore().add(patterns);
+
 // here we could pass in the file pattern and directory
-find.file(/\.js$/, process.cwd(), function(files) {
-  files = files.map(file => path.relative(process.cwd(), file)); // make the paths relative for the filter
-  let filtered = ig.filter(files); // filter out the files in the gitignore
+find
+  .file(/\.js$/, process.cwd(), function(files) {
+    files = files.map(file => path.relative(process.cwd(), file)); // make the paths relative for the filter
+    let filtered = ig.filter(files); // filter out the files in the gitignore
 
-  filtered.forEach(file => {
-    fs.readFile(file, (err, data) => {
-      if (err) throw err;
+    filtered.forEach(file => {
+      fs.readFile(file, (err, data) => {
+        if (err) return displayError(err);
 
-      babel.parse(data, options, function(err, result) {
-        if (err) throw err;
+        babel.parse(data, opts.options, function(err, ast) {
+          if (err) return displayError(err);
 
-        for (let { node } of new RI(result, 0, true, 100)) {
-          if (node && node.type === "ClassDeclaration") {
-            console.dir(node, { depth: 1 });
+          let components = [];
+          for (let { node } of new RI(ast, 0, true, 100)) {
+            if (
+              node &&
+              node.type === "ClassDeclaration" &&
+              node.superClass &&
+              node.superClass.name === "Component"
+            ) {
+              components.push(node.id.name);
+              //console.log(node.body.body);
+            }
           }
-        }
+          if (components.length) {
+            console.log(path.join(process.cwd(), file));
+            components.forEach(name => console.log(chalk.green("\t-", name)));
+          }
+        });
       });
     });
+  })
+  .error(function(err) {
+    if (err) return displayError(err);
   });
-});
+
+function displayError(err) {
+  console.error(err.message);
+  return 1;
+}
