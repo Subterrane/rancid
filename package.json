@@ -15,6 +15,14 @@
   "homepage": "https://github.com/Subterrane/rancid#readme",
   "dependencies": {
     "@babel/core": "^7.2.2",
-    "commander": "^2.19.0"
+    "@babel/plugin-proposal-class-properties": "^7.3.0",
+    "@babel/plugin-syntax-jsx": "^7.2.0",
+    "@babel/plugin-transform-react-display-name": "^7.2.0",
+    "@babel/plugin-transform-react-jsx": "^7.3.0",
+    "commander": "^2.19.0",
+    "find": "^0.2.9",
+    "ignore": "^5.0.5",
+    "ignored": "^2.0.4",
+    "recursive-iterator": "^3.3.0"
   }
 }
