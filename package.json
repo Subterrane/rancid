@@ -1,0 +1,19 @@
+{
+  "name": "rancid",
+  "version": "1.0.0",
+  "description": "A command-line tool to puke out some helpful hints",
+  "bin": {
+    "rancid": "./index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Subterrane/rancid.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Subterrane/rancid/issues"
+  },
+  "homepage": "https://github.com/Subterrane/rancid#readme",
+  "dependencies": {
+    "commander": "^2.19.0"
+  }
+}
