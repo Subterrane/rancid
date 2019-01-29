@@ -1,2 +1,2 @@
-# rancid
+# RanCiD
 React Component Documentation
