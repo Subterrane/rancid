@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const RI = require("recursive-iterator");
 const program = require("commander");
 const gitignore = require("ignored");
 const babel = require("@babel/core");
@@ -57,17 +56,18 @@ find
           if (err) return displayError(err);
 
           let components = [];
-          for (let { node } of new RI(ast, 0, true, 100)) {
-            if (
-              node &&
-              node.type === "ClassDeclaration" &&
-              node.superClass &&
-              node.superClass.name === "Component"
-            ) {
-              components.push(node.id.name);
-              //console.log(node.body.body);
+          babel.traverse(ast, {
+            ClassDeclaration: function(path) {
+              if (
+                path.node.superClass &&
+                path.node.superClass.name === "Component"
+              ) {
+                components.push(path.node.id.name);
+                //console.dir(path.node, { depth: 10 });
+              }
             }
-          }
+          });
+
           if (components.length) {
             console.log(chalk.bold(path.join(process.cwd(), file)));
             components.forEach(name => console.log(chalk.green("\t-", name)));
