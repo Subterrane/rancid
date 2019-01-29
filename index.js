@@ -1,21 +1,14 @@
 #!/usr/bin/env node
 
+var babel = require("@babel/core");
 var program = require("commander");
 
-program
-  .version("0.1.0")
-  .option("-p, --peppers", "Add peppers")
-  .option("-P, --pineapple", "Add pineapple")
-  .option("-b, --bbq-sauce", "Add bbq sauce")
-  .option(
-    "-c, --cheese [type]",
-    "Add the specified type of cheese [marble]",
-    "marble"
-  )
-  .parse(process.argv);
+program.version("1.0.0").parse(process.argv);
 
-console.log("you ordered a pizza with:");
-if (program.peppers) console.log("  - peppers");
-if (program.pineapple) console.log("  - pineapple");
-if (program.bbqSauce) console.log("  - bbq");
-console.log("  - %s cheese", program.cheese);
+let code = "meow(); woof();";
+let options = { ast: true, code: false };
+
+babel.transform(code, options, function(err, result) {
+  //result; // => { code, map, ast }
+  console.dir(result.ast, { depth: null });
+});
