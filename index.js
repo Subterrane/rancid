@@ -59,7 +59,8 @@ find
 
     filtered.forEach(file => {
       if (componentName) {
-        const components = grepit(`<${componentName}`, file);
+        const re = new RegExp(`<${componentName}`, "i");
+        const components = grepit(re, file);
         if (components.length) {
           console.log(chalk.bold(path.join(process.cwd(), file)));
           components.forEach(line =>
