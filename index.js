@@ -69,7 +69,7 @@ find
             }
           }
           if (components.length) {
-            console.log(path.join(process.cwd(), file));
+            console.log(chalk.bold(path.join(process.cwd(), file)));
             components.forEach(name => console.log(chalk.green("\t-", name)));
           }
         });
