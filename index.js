@@ -51,7 +51,16 @@ const opts = babel.loadPartialConfig({
 const patterns = gitignore(); // without a param, uses current directory
 const ig = ignore().add(patterns);
 const filePattern = new RegExp(`\\${program.fileExt}$`);
+const packageJson = "package.json";
 
+let isNodeProject = false;
+fs.readdirSync(process.cwd()).forEach(file => {
+  if(file == packageJson){
+    isNodeProject = true;
+  }
+})
+
+if(isNodeProject){
 find
   .file(filePattern, process.cwd(), function(files) {
     files = files.map(file => path.relative(process.cwd(), file)); // make the paths relative for the filter
@@ -105,7 +114,7 @@ find
   .error(function(err) {
     if (err) return displayError(err);
   });
-
+}
 function displayError(err) {
   console.error(err.message);
   //process.exit(1);
