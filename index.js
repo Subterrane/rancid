@@ -55,77 +55,79 @@ const packageJson = "package.json";
 
 let isNodeProject = false;
 fs.readdirSync(process.cwd()).forEach(file => {
-  if(file == packageJson){
+  if (file == packageJson) {
     isNodeProject = true;
   }
-})
+});
 
-if(isNodeProject){
-  find.file(filePattern, process.cwd(), function(files) {
-    files = files.map(file => path.relative(process.cwd(), file)); // make the paths relative for the filter
-    let filtered = ig.filter(files); // filter out the files in the gitignore
+if (isNodeProject) {
+  find
+    .file(filePattern, process.cwd(), function(files) {
+      files = files.map(file => path.relative(process.cwd(), file)); // make the paths relative for the filter
+      let filtered = ig.filter(files); // filter out the files in the gitignore
 
-    filtered.forEach(file => {
-      fs.readFile(file, (err, data) => {
-        if (err) return displayError(err);
+      filtered.forEach(file => {
+        fs.readFile(file, (err, data) => {
+          if (err) return displayError(err);
 
-        if (componentName) {
-          const re = new RegExp(
-            `(<${componentName}.*?>|{${componentName}.*?})`,
-            "gims"
-          );
-          const matches = re.exec(data);
-          if (matches && matches.length) {
-            console.log(chalk.bold(path.join(process.cwd(), file)));
-            console.log(chalk.green("\t-", matches[0]));
-            babel.parse(data, opts.options, function(err, ast) {
-              if (ast.comments) {
-                ast.comments.forEach(comment =>
-                  console.log(chalk.cyan("\t-", comment.value))
-                );
-              }
-            })
-          }
-        } else {
-          babel.parse(data, opts.options, function(err, ast) {
-            if (err) return displayError(err);
-
-            //console.dir(ast, { depth: null });
-
-            let components = [];
-            babel.traverse(ast, {
-              /*
-              ClassDeclaration: function(path) {
-                if (
-                  path.node.superClass &&
-                  path.node.superClass.name === "Component"
-                ) {
-                  components.push(path.node.id.name);
+          if (componentName) {
+            const re = new RegExp(
+              `(<${componentName}.*?>|{${componentName}.*?})`,
+              "gims"
+            );
+            const matches = re.exec(data);
+            if (matches && matches.length) {
+              console.log(chalk.bold(path.join(process.cwd(), file)));
+              console.log(chalk.green("\t-", matches[0]));
+              babel.parse(data, opts.options, function(err, ast) {
+                if (ast.comments) {
+                  ast.comments.forEach(comment =>
+                    console.log(chalk.cyan("\t-", comment.value))
+                  );
                 }
-              },*/
-              ExportDefaultDeclaration: function(path) {
-                components.push(path.node.declaration.name);
+              });
+            }
+          } else {
+            babel.parse(data, opts.options, function(err, ast) {
+              if (err) return displayError(err);
+
+              //console.dir(ast, { depth: null });
+
+              let components = new Set();
+              babel.traverse(ast, {
+                ClassDeclaration: function(path) {
+                  if (
+                    path.node.superClass &&
+                    path.node.superClass.name === "Component"
+                  ) {
+                    components.add(path.node.id.name);
+                  }
+                },
+                ExportDefaultDeclaration: function(path) {
+                  components.add(path.node.declaration.name);
+                }
+              });
+
+              if (components.size) {
+                console.log(chalk.bold(path.join(process.cwd(), file)));
+                components.forEach(name =>
+                  console.log(chalk.green("\t-", name))
+                );
+
+                if (ast.comments) {
+                  ast.comments.forEach(comment =>
+                    console.log(chalk.cyan("\t-", comment.value))
+                  );
+                }
               }
             });
-
-            if (components.length) {
-              console.log(chalk.bold(path.join(process.cwd(), file)));
-              components.forEach(name => console.log(chalk.green("\t-", name)));
-
-              if (ast.comments) {
-                ast.comments.forEach(comment =>
-                  console.log(chalk.cyan("\t-", comment.value))
-                );
-              }
-            }
-          });
-        }
+          }
+        });
       });
+    })
+    .error(function(err) {
+      if (err) return displayError(err);
     });
-  })
-  .error(function(err) {
-    if (err) return displayError(err);
-  });
 }
 function displayError(err) {
   console.error(err.message);
