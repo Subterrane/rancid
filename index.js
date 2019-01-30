@@ -11,18 +11,22 @@ const fs = require("fs");
 
 let componentName;
 const description = `Parse javascript files for React component definitions
-[optional] Specify a [component] to grep for usage`;
+[optional] Specify a [component] to grep for usage & comments`;
 
 program
   .version("1.0.0")
   .description(description)
   .option("-a, --ast", "display the Abstract Syntax Tree")
-  .option("-f, --fileExt [ext]", "specify file extension", ".js")
+  .option("-e, --extension [ext]", "specify file extension", ".js")
+  .option("-f, --force", "scan directory even if package.json doesn't exist")
   .arguments("[component]")
   .action(component => (componentName = component))
   .parse(process.argv);
 
-if (!fs.existsSync(path.join(process.cwd(), "package.json"))) {
+if (
+  !fs.existsSync(path.join(process.cwd(), "package.json")) &&
+  !program.force
+) {
   displayError(new Error("Directory isn't a React App"));
 }
 
@@ -50,7 +54,7 @@ const opts = babel.loadPartialConfig({
 
 const patterns = gitignore(); // without a param, uses current directory
 const ig = ignore().add(patterns);
-const filePattern = new RegExp(`\\${program.fileExt}$`);
+const filePattern = new RegExp(`\\${program.extension}$`);
 
 find
   .file(filePattern, process.cwd(), function(files) {
@@ -143,7 +147,7 @@ find
               console.log(chalk.bold(path.join(process.cwd(), file)));
               components.forEach(data =>
                 console.log(
-                  chalk.green("  •", `${data.line}:`),
+                  chalk.green("  ‣", `${data.line}:`),
                   chalk.magenta(data.name),
                   chalk.cyan("•", data.type)
                 )
@@ -159,6 +163,6 @@ find
   });
 
 function displayError(err) {
-  console.error("ERR:", err.message);
+  console.error("  ☠", err.message);
   process.exit(1);
 }
