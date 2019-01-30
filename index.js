@@ -113,12 +113,6 @@ if (isNodeProject) {
                 components.forEach(name =>
                   console.log(chalk.green("\t-", name))
                 );
-
-                if (ast.comments) {
-                  ast.comments.forEach(comment =>
-                    console.log(chalk.cyan("\t-", comment.value))
-                  );
-                }
               }
             });
           }
