@@ -21,12 +21,6 @@ program
   })
   .parse(process.argv);
 
-//
-// probably need some options here.
-// -d for directory (default to cwd)
-// -p for file pattern or something (default to *.js)
-// see: https://www.npmjs.com/package/commander
-
 const dir = path.join(__dirname, "node_modules");
 const opts = babel.loadPartialConfig({
   plugins: [
@@ -80,7 +74,11 @@ if (isNodeProject) {
             if (matches && matches.length) {
               console.log(chalk.bold(path.join(process.cwd(), file)));
               console.log(chalk.green("\t-", matches[0]));
+
               babel.parse(data, opts.options, function(err, ast) {
+                if (err) return displayError(err);
+                if (program.ast) console.dir(ast, { depth: null });
+
                 if (ast.comments) {
                   ast.comments.forEach(comment =>
                     console.log(chalk.cyan("\t-", comment.value))
