@@ -22,7 +22,6 @@
     "chalk": "^2.4.2",
     "commander": "^2.19.0",
     "find": "^0.2.9",
-    "grepit": "^1.0.0",
     "ignore": "^5.0.5",
     "ignored": "^2.0.4",
     "recursive-iterator": "^3.3.0"

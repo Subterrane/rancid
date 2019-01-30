@@ -4,7 +4,6 @@ const program = require("commander");
 const gitignore = require("ignored");
 const babel = require("@babel/core");
 const ignore = require("ignore");
-const grepit = require("grepit");
 const chalk = require("chalk");
 const find = require("find");
 const path = require("path");
@@ -14,6 +13,7 @@ let componentName;
 
 program
   .version("1.0.0")
+  .option("-f, --fileExt [ext]", "Look through files foo[ext]", ".js")
   .arguments("[component]")
   .action(function(component) {
     componentName = component;
@@ -50,27 +50,25 @@ const opts = babel.loadPartialConfig({
 
 const patterns = gitignore(); // without a param, uses current directory
 const ig = ignore().add(patterns);
+const filePattern = new RegExp(`\\${program.fileExt}$`);
 
-// here we could pass in the file pattern and directory
 find
-  .file(/\.js$/, process.cwd(), function(files) {
+  .file(filePattern, process.cwd(), function(files) {
     files = files.map(file => path.relative(process.cwd(), file)); // make the paths relative for the filter
     let filtered = ig.filter(files); // filter out the files in the gitignore
 
     filtered.forEach(file => {
-      if (componentName) {
-        const re = new RegExp(`<${componentName}`, "i");
-        const components = grepit(re, file);
-        if (components.length) {
-          console.log(chalk.bold(path.join(process.cwd(), file)));
-          components.forEach(line =>
-            console.log(chalk.green("\t-", line.trim()))
-          );
-        }
-      } else {
-        fs.readFile(file, (err, data) => {
-          if (err) return displayError(err);
+      fs.readFile(file, (err, data) => {
+        if (err) return displayError(err);
 
+        if (componentName) {
+          const re = new RegExp(`<${componentName}.*?>`, "gims");
+          const matches = re.exec(data);
+          if (matches && matches.length) {
+            console.log(chalk.bold(path.join(process.cwd(), file)));
+            console.log(chalk.green("\t-", matches[0]));
+          }
+        } else {
           babel.parse(data, opts.options, function(err, ast) {
             if (err) return displayError(err);
 
@@ -82,7 +80,6 @@ find
                   path.node.superClass.name === "Component"
                 ) {
                   components.push(path.node.id.name);
-                  //console.dir(path.node, { depth: 10 });
                 }
               }
             });
@@ -90,10 +87,16 @@ find
             if (components.length) {
               console.log(chalk.bold(path.join(process.cwd(), file)));
               components.forEach(name => console.log(chalk.green("\t-", name)));
+
+              if (ast.comments) {
+                ast.comments.forEach(comment =>
+                  console.log(chalk.blue("\t-", comment.value))
+                );
+              }
             }
           });
-        });
-      }
+        }
+      });
     });
   })
   .error(function(err) {
