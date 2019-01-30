@@ -84,8 +84,11 @@ find
           babel.parse(data, opts.options, function(err, ast) {
             if (err) return displayError(err);
 
+            //console.dir(ast, { depth: null });
+
             let components = [];
             babel.traverse(ast, {
+              /*
               ClassDeclaration: function(path) {
                 if (
                   path.node.superClass &&
@@ -93,6 +96,9 @@ find
                 ) {
                   components.push(path.node.id.name);
                 }
+              },*/
+              ExportDefaultDeclaration: function(path) {
+                components.push(path.node.declaration.name);
               }
             });
 
