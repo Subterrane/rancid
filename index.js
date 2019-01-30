@@ -61,8 +61,7 @@ fs.readdirSync(process.cwd()).forEach(file => {
 })
 
 if(isNodeProject){
-find
-  .file(filePattern, process.cwd(), function(files) {
+  find.file(filePattern, process.cwd(), function(files) {
     files = files.map(file => path.relative(process.cwd(), file)); // make the paths relative for the filter
     let filtered = ig.filter(files); // filter out the files in the gitignore
 
@@ -79,6 +78,13 @@ find
           if (matches && matches.length) {
             console.log(chalk.bold(path.join(process.cwd(), file)));
             console.log(chalk.green("\t-", matches[0]));
+            babel.parse(data, opts.options, function(err, ast) {
+              if (ast.comments) {
+                ast.comments.forEach(comment =>
+                  console.log(chalk.cyan("\t-", comment.value))
+                );
+              }
+            })
           }
         } else {
           babel.parse(data, opts.options, function(err, ast) {
@@ -102,7 +108,7 @@ find
 
               if (ast.comments) {
                 ast.comments.forEach(comment =>
-                  console.log(chalk.blue("\t-", comment.value))
+                  console.log(chalk.cyan("\t-", comment.value))
                 );
               }
             }
