@@ -62,7 +62,10 @@ find
         if (err) return displayError(err);
 
         if (componentName) {
-          const re = new RegExp(`<${componentName}.*?>`, "gims");
+          const re = new RegExp(
+            `(<${componentName}.*?>|{${componentName}.*?})`,
+            "gims"
+          );
           const matches = re.exec(data);
           if (matches && matches.length) {
             console.log(chalk.bold(path.join(process.cwd(), file)));
@@ -105,5 +108,5 @@ find
 
 function displayError(err) {
   console.error(err.message);
-  process.exit(1);
+  //process.exit(1);
 }
