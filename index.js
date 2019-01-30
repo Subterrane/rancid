@@ -13,6 +13,7 @@ let componentName;
 
 program
   .version("1.0.0")
+  .option("-a, --ast", "Log out the Abstract Syntax Tree")
   .option("-f, --fileExt [ext]", "Look through files foo[ext]", ".js")
   .arguments("[component]")
   .action(function(component) {
@@ -90,8 +91,7 @@ if (isNodeProject) {
           } else {
             babel.parse(data, opts.options, function(err, ast) {
               if (err) return displayError(err);
-
-              //console.dir(ast, { depth: null });
+              if (program.ast) console.dir(ast, { depth: null });
 
               let components = new Set();
               babel.traverse(ast, {
