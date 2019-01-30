@@ -104,7 +104,17 @@ if (isNodeProject) {
                   }
                 },
                 ExportDefaultDeclaration: function(path) {
-                  components.add(path.node.declaration.name);
+                  babel.traverse(
+                    path.node,
+                    {
+                      Identifier: function(path) {
+                        path.stop();
+                        components.add(path.node.name);
+                      }
+                    },
+                    path.scope,
+                    path
+                  );
                 }
               });
 
