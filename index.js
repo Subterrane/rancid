@@ -10,8 +10,7 @@ const path = require("path");
 const fs = require("fs");
 
 let componentName;
-const description = `RanCiD - React Component Documentation
-Parse javascript files for React component definitions
+const description = `Parse javascript files for React component definitions
 [optional] Specify a [component] to grep for usage & comments`;
 
 program
