@@ -131,5 +131,5 @@ if (isNodeProject) {
 }
 function displayError(err) {
   console.error(err.message);
-  //process.exit(1);
+  process.exit(1);
 }
