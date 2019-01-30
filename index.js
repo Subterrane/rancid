@@ -16,9 +16,7 @@ program
   .option("-a, --ast", "Log out the Abstract Syntax Tree")
   .option("-f, --fileExt [ext]", "Look through files foo[ext]", ".js")
   .arguments("[component]")
-  .action(function(component) {
-    componentName = component;
-  })
+  .action(component => (componentName = component))
   .parse(process.argv);
 
 if (!fs.existsSync(path.join(process.cwd(), "package.json"))) {
