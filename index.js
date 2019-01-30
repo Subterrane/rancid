@@ -10,11 +10,14 @@ const path = require("path");
 const fs = require("fs");
 
 let componentName;
+const description = `Parse javascript files for React component definitions
+[optional] Specify a [component] to grep for usage`;
 
 program
   .version("1.0.0")
-  .option("-a, --ast", "Log out the Abstract Syntax Tree")
-  .option("-f, --fileExt [ext]", "Look through files foo[ext]", ".js")
+  .description(description)
+  .option("-a, --ast", "display the Abstract Syntax Tree")
+  .option("-f, --fileExt [ext]", "specify file extension", ".js")
   .arguments("[component]")
   .action(component => (componentName = component))
   .parse(process.argv);
@@ -91,8 +94,31 @@ find
                   path.node.superClass &&
                   path.node.superClass.name === "Component"
                 ) {
-                  components.add(path.node.id.name);
+                  components.add({
+                    line: path.node.loc.start.line,
+                    name: path.node.id.name,
+                    type: "ClassDeclaration"
+                  });
                 }
+              },
+              ExportNamedDeclaration: function(path) {
+                babel.traverse(
+                  path.node,
+                  {
+                    Identifier: function(path) {
+                      if (path.node.name !== "default") {
+                        path.stop();
+                        components.add({
+                          line: path.node.loc.start.line,
+                          name: path.node.name,
+                          type: "ExportNamedDeclaration"
+                        });
+                      }
+                    }
+                  },
+                  path.scope,
+                  path.specifiers
+                );
               },
               ExportDefaultDeclaration: function(path) {
                 babel.traverse(
@@ -100,7 +126,11 @@ find
                   {
                     Identifier: function(path) {
                       path.stop();
-                      components.add(path.node.name);
+                      components.add({
+                        line: path.node.loc.start.line,
+                        name: path.node.name,
+                        type: "ExportDefaultDeclaration"
+                      });
                     }
                   },
                   path.scope,
@@ -111,7 +141,13 @@ find
 
             if (components.size) {
               console.log(chalk.bold(path.join(process.cwd(), file)));
-              components.forEach(name => console.log(chalk.green("\t-", name)));
+              components.forEach(data =>
+                console.log(
+                  chalk.green("  •", `${data.line}:`),
+                  chalk.magenta(data.name),
+                  chalk.cyan("•", data.type)
+                )
+              );
             }
           });
         }
